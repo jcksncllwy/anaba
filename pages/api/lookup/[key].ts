@@ -5,9 +5,13 @@ type ResponseData = {
   error?: string
 }
 
+type AnabaSession = {
+  initializedAt: EpochTimeStamp
+}
+
 declare module "iron-session" {
   interface IronSessionData {
-    locktreeSessionToken?: string;
+    anabaSession: AnabaSession;
   }
 }
 
@@ -20,7 +24,10 @@ export default withIronSessionApiRoute(
     const profileID = "" //Lookup ID by key
     const redirectTo = `/profile/${profileID}`
 
-    req.session.locktreeSessionToken = "" //generate TTL session token
+    req.session.anabaSession = {
+      initializedAt: Date.now()
+    } 
+    //generate TTL session token
     await req.session.save();
 
     res.writeHead(302, {
@@ -28,11 +35,12 @@ export default withIronSessionApiRoute(
     }).end()
   },
   {
-    cookieName: "locktree_unlocked",
+    cookieName: "anaba_unlocked",
     password: "complex_password_at_least_32_characters_long",
-    // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
     cookieOptions: {
+      // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
       secure: process.env.NODE_ENV === "production",
+      maxAge: 86400,
     },
   }
 )
